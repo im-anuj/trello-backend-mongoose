@@ -142,6 +142,47 @@ app.post('/add-member-to-organization', authMiddelware, (req, res) => {
   });
 });
 
+app.post('/board', authMiddelware, (req, res)=> {
+
+});
+
+app.post('/issue', authMiddelware, (req, res) => {
+
+});
+
+
+//GET endpoints
+
+app.get('/organization', authMiddelware, (req, res) => {
+  const userId = req.userId;
+  const organizationId = parseInt(req.query.organizationId);
+
+  const organization = ORGANIZATON.find(org => org.id === organizationId);
+  if(!organization){
+    return res.status(404).json({
+      message: "org doesnt exist"
+    });
+  }
+  if(organization.admin !== userId){
+    return res.status(403).json({
+      message: "you are not the admin of this org"
+    });
+  }
+
+  res.json({
+    organization: {
+      ...organization,
+      members: organization.members.map(memberId => {
+        const user = USERS.find(u => u.id === memberId);
+        return{
+          id: user.id,
+          username: user.username
+        }
+      })
+    }
+  });
+});
+
 //DELETE
 app.delete('/members', authMiddelware, (req, res) => {
   const userId = req.userId;

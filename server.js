@@ -99,6 +99,20 @@ app.post('/signin', (req, res) => {
   res.json(token);
 });
 
+app.post('/organization', authMiddelware, (req, res) => {
+  const userId = req.userId;
+  ORGANIZATON.push({
+    id: ORGANIZATION_ID++,
+    title: req.body.title,
+    description: req.body.description,
+    admin: userId,
+    members: []
+  });
+  res.json({
+    message: "org created"
+  });
+});
+
 app.get('/', authMiddelware, (req, res) => {
   res.json('hi');
 });

@@ -113,6 +113,35 @@ app.post('/organization', authMiddelware, (req, res) => {
   });
 });
 
+app.post('/add-member-to-organization', authMiddelware, (req, res) => {
+  const userId = req.userId;
+  const organizationId = req.body.organizationId;
+  const memberUsername = req.body.username;
+
+  const organization = ORGANIZATON.find(org => org.id === organizationId);
+
+  if( !organization || organization.admin !== userId){
+    res.status(411).json({
+      message: "either this org doesnt exists or you are not an admin of this org"
+    });
+    return;
+  }
+
+  const member = USERS.find(u => u.username === memberUsername);
+
+  if(!member){
+    res.sendStatus(411).json({
+      message: "no user with this username exists in our database"
+    });
+    return;
+  }
+
+  organization.members.push(member.id);
+  res.json({
+    message: "new member added"
+  });
+});
+
 app.get('/', authMiddelware, (req, res) => {
   res.json('hi');
 });

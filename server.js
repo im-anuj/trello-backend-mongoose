@@ -116,7 +116,7 @@ app.post('/organization', authMiddelware, (req, res) => {
 app.post('/add-member-to-organization', authMiddelware, (req, res) => {
   const userId = req.userId;
   const organizationId = req.body.organizationId;
-  const memberUsername = req.body.username;
+  const memberUsername = req.body.memberUsername;
 
   const organization = ORGANIZATON.find(org => org.id === organizationId);
 
@@ -141,6 +141,44 @@ app.post('/add-member-to-organization', authMiddelware, (req, res) => {
     message: "new member added"
   });
 });
+
+//DELETE
+app.delete('/members', authMiddelware, (req, res) => {
+  const userId = req.userId;
+  const organizationId = req.body.organizationId;
+  const memberUsername = req.body.memberUsername;
+
+  const organization = ORGANIZATON.find(org => org.id === organizationId);
+
+  if(!organization){
+    return res.status(404).json({
+      message: "this org doesnt exists"
+    });
+  }
+  if(organization.admin !== userId){
+    return res.status(403).json({
+      message: "only admin can remove members"
+    });
+  }
+
+  const member = USERS.find(u => u.username === memberUsername);
+
+  if(!member){
+    return res.status(404).json({
+      message: "user not found"
+    });
+  }
+  if(!organization.members.includes(member.id)){
+    return res.status(404).json({
+      message: "user is not a member of this org"
+    });
+  }
+
+  organization.members = organization.members.filter(id => id !== member.id);
+  return res.json({
+    message: "member deleted"
+  });
+})
 
 app.get('/', authMiddelware, (req, res) => {
   res.json('hi');

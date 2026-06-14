@@ -2,10 +2,10 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const authMiddelware = require('./middleware');
 
-let USERS_ID = 1;
-let ORGANIZATION_ID = 1;
-let BOARDS_ID = 1;
-let ISSUES_ID = 1;
+let USERS_ID = 10;
+let ORGANIZATION_ID = 10;
+let BOARDS_ID = 10;
+let ISSUES_ID = 10;
 
 const USERS = [{
   id: 1,
@@ -40,17 +40,20 @@ const BOARDS = [{
 const ISSUES = [{
   id: 1,
   title: "add dark mode",
-  boardId: 1
+  boardId: 1,
+  state: "IN_PROGRESS" // "UP_NEXT" | "IN_PROGRESS" | "DONE" | "ARCHIVED"
 }, {
   id: 2,
   title: "add new feat",
-  boardId: 1
+  boardId: 1,
+  state: "DONE"
 }];
 
 const app = express();
 const PORT = 3000;
 app.use(express.json());
 
+//CREATE
 
 app.post('/signup', (req, res) => {
   const username = req.body.username;
@@ -109,7 +112,8 @@ app.post('/organization', authMiddelware, (req, res) => {
     members: []
   });
   res.json({
-    message: "org created"
+    message: "org created",
+    organizationId: ORGANIZATION_ID - 1
   });
 });
 
@@ -143,7 +147,31 @@ app.post('/add-member-to-organization', authMiddelware, (req, res) => {
 });
 
 app.post('/board', authMiddelware, (req, res)=> {
+  const userId = req.userId;
+  const organizationId = req.body.organizationId;
 
+  const organization = ORGANIZATON.find(org => org.id === organizationId);
+
+  if(!organization){
+    return res.status(404).json({
+      message: "this org doesnt exists"
+    });
+  }
+  if(organization.admin !== userId){
+    return res.status(403).json({
+      message: "only admin can create boards"
+    });
+  }
+
+  BOARDS.push({
+    id: BOARDS_ID++,
+    title: req.body.title,
+    organizationId: organizationId
+  });
+  res.json({
+    message: "board created",
+    boardId: BOARDS_ID - 1
+  });
 });
 
 app.post('/issue', authMiddelware, (req, res) => {
@@ -152,6 +180,7 @@ app.post('/issue', authMiddelware, (req, res) => {
 
 
 //GET endpoints
+//READ
 
 app.get('/organization', authMiddelware, (req, res) => {
   const userId = req.userId;
@@ -182,6 +211,24 @@ app.get('/organization', authMiddelware, (req, res) => {
     }
   });
 });
+
+app.get('/board', authMiddelware, (req, res) => {
+
+});
+
+app.get('/issues', authMiddelware, (req, res) => {
+
+});
+
+app.get('/members', authMiddelware, (req, res) => {
+
+});
+
+//UPDATE
+
+app.put('/issues', authMiddelware, (req, res) => {
+
+})
 
 //DELETE
 app.delete('/members', authMiddelware, (req, res) => {

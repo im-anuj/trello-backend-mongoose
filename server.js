@@ -17,7 +17,7 @@ const USERS = [{
   password: "1231234"
 }];
 
-const ORGANIZATON = [{
+const ORGANIZATIONS = [{
   id: 1,
   title: "zomato",
   description: "order food",
@@ -104,7 +104,7 @@ app.post('/signin', (req, res) => {
 
 app.post('/organization', authMiddelware, (req, res) => {
   const userId = req.userId;
-  ORGANIZATON.push({
+  ORGANIZATIONS.push({
     id: ORGANIZATION_ID++,
     title: req.body.title,
     description: req.body.description,
@@ -122,7 +122,7 @@ app.post('/add-member-to-organization', authMiddelware, (req, res) => {
   const organizationId = req.body.organizationId;
   const memberUsername = req.body.memberUsername;
 
-  const organization = ORGANIZATON.find(org => org.id === organizationId);
+  const organization = ORGANIZATIONS.find(org => org.id === organizationId);
 
   if( !organization || organization.admin !== userId){
     res.status(411).json({
@@ -150,7 +150,7 @@ app.post('/board', authMiddelware, (req, res)=> {
   const userId = req.userId;
   const organizationId = req.body.organizationId;
 
-  const organization = ORGANIZATON.find(org => org.id === organizationId);
+  const organization = ORGANIZATIONS.find(org => org.id === organizationId);
 
   if(!organization){
     return res.status(404).json({
@@ -185,7 +185,7 @@ app.post('/issue', authMiddelware, (req, res) => {
     });
   }
 
-  const organization = ORGANIZATON.find(org => org.id === board.organizationId);
+  const organization = ORGANIZATIONS.find(org => org.id === board.organizationId);
   if(!organization){
     return res.status(404).json({
       message: "this org doesnt exists"
@@ -200,7 +200,7 @@ app.post('/issue', authMiddelware, (req, res) => {
       message: "you are not a member of this org"
     });
   }
-  
+
   ISSUES.push({
     id: ISSUES_ID++,
     title: req.body.title,
@@ -222,7 +222,7 @@ app.get('/organization', authMiddelware, (req, res) => {
   const userId = req.userId;
   const organizationId = parseInt(req.query.organizationId);
 
-  const organization = ORGANIZATON.find(org => org.id === organizationId);
+  const organization = ORGANIZATIONS.find(org => org.id === organizationId);
   if(!organization){
     return res.status(404).json({
       message: "org doesnt exist"
@@ -272,7 +272,7 @@ app.delete('/members', authMiddelware, (req, res) => {
   const organizationId = req.body.organizationId;
   const memberUsername = req.body.memberUsername;
 
-  const organization = ORGANIZATON.find(org => org.id === organizationId);
+  const organization = ORGANIZATIONS.find(org => org.id === organizationId);
 
   if(!organization){
     return res.status(404).json({

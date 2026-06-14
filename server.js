@@ -134,7 +134,7 @@ app.post('/add-member-to-organization', authMiddelware, (req, res) => {
   const member = USERS.find(u => u.username === memberUsername);
 
   if(!member){
-    res.sendStatus(411).json({
+    res.status(411).json({
       message: "no user with this username exists in our database"
     });
     return;
@@ -175,7 +175,43 @@ app.post('/board', authMiddelware, (req, res)=> {
 });
 
 app.post('/issue', authMiddelware, (req, res) => {
+  const userId = req.userId;
+  const boardId = req.body.boardId;
 
+  const board = BOARDS.find(board => board.id === boardId);
+  if(!board){
+    return res.status(404).json({
+      message: "board not found"
+    });
+  }
+
+  const organization = ORGANIZATON.find(org => org.id === board.organizationId);
+  if(!organization){
+    return res.status(404).json({
+      message: "this org doesnt exists"
+    });
+  }
+
+  const isMember = organization.admin === userId || 
+                    organization.members.includes(userId);
+
+  if(!isMember){
+    return res.status(403).json({
+      message: "you are not a member of this org"
+    });
+  }
+  
+  ISSUES.push({
+    id: ISSUES_ID++,
+    title: req.body.title,
+    boardId: boardId,
+    state: "UP_NEXT"
+  });
+
+  res.json({
+    message: "issue created",
+    issueId: ISSUES_ID - 1
+  });
 });
 
 

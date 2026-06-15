@@ -356,9 +356,56 @@ app.get('/members', authMiddelware, (req, res) => {
 
 //UPDATE
 
-app.put('/issues', authMiddelware, (req, res) => {
+app.put('/issue', authMiddelware, (req, res) => {
+  const userId = req.userId;
+  const issueId = parseInt(req.query.issueId);
 
-})
+  const issue = ISSUES.find(i => i.id === issueId);
+  if(!issue){
+    return res.status(404).json({
+      message: "issue not found"
+    });
+  }
+  const board = BOARDS.find(b => b.id === issue.boardId);
+  if(!board){
+    return res.status(404).json({
+      message: "board not found"
+    });
+  }
+
+  const organization = ORGANIZATIONS.find(org => org.id === board.organizationId);
+  if(!organization){
+    return  res.status(404).json({
+      message: "org not found"
+    });
+  }
+
+  const isMember = organization.admin === userId ||
+                    organization.members.includes(userId);
+
+  if(!isMember){
+    return res.status(403).json({
+      message: "you are not a member of this org"
+    });
+  }
+
+  if (issue.state === "UP_NEXT") {
+    issue.state = "IN_PROGRESS";
+  } else if (issue.state === "IN_PROGRESS") {
+    issue.state = "DONE";
+  } else if (issue.state === "DONE") {
+    issue.state = "ARCHIVED";
+  } else {
+    return res.status(400).json({
+      message: "issue is already archived"
+    });
+  }
+
+  res.json({
+    message: "issue updated",
+    issue
+  });
+});
 
 //DELETE
 app.delete('/members', authMiddelware, (req, res) => {

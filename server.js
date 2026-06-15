@@ -248,8 +248,28 @@ app.get('/organization', authMiddelware, (req, res) => {
   });
 });
 
-app.get('/board', authMiddelware, (req, res) => {
+app.get('/boards', authMiddelware, (req, res) => {
+  const userId = req.userId;
+  const organizationId = parseInt(req.query.organizationId);
 
+  const organization = ORGANIZATIONS.find(org => org.id === organizationId);
+  if(!organization){
+    return res.status(404).json({
+      message: "org doesnt exists"
+    });
+  }
+
+  const isMember = organization.admin === userId ||
+                    organization.members.includes(userId);
+
+  if(!isMember){
+    return res.status(403).json({
+      message: "you are not a member of this org"
+    });
+  }
+
+  const boards = BOARDS.filter(b => b.organizationId === organizationId);
+  res.json(boards);
 });
 
 app.get('/issues', authMiddelware, (req, res) => {

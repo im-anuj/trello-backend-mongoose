@@ -294,7 +294,36 @@ app.get('/boards', authMiddelware, (req, res) => {
 });
 
 app.get('/issues', authMiddelware, (req, res) => {
+  const userId = req.userId;
+  const boardId = parseInt(req.query.boardId);
 
+  const board = BOARDS.find(b => b.id === boardId);
+  if(!board){
+    return res.status(404).json({
+      message: "board not found"
+    });
+  }
+
+  const organization = ORGANIZATIONS.find(org => org.id === board.organizationId);
+  if(!organization){
+    return res.status(404).json({
+      message: "org doesnt exists"
+    });
+  }
+
+  const isMember = organization.admin === userId || 
+                    organization.members.includes(userId);
+
+  if(!isMember){
+    return res.status(403).json({
+      message: "you are not a member of this org"
+    });
+  }
+
+  const issues = ISSUES.filter(i => i.boardId === boardId);
+  res.json({
+    issues
+  });
 });
 
 app.get('/members', authMiddelware, (req, res) => {

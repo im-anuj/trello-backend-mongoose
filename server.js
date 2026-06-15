@@ -248,6 +248,25 @@ app.get('/organization', authMiddelware, (req, res) => {
   });
 });
 
+app.get('/my-organizations', authMiddelware, (req, res) => {
+  const userId = req.userId;
+  
+  const organizations = ORGANIZATIONS.filter(org => 
+    org.admin === userId || org.members.includes(userId)
+  )
+  .map((org) => {
+    return {
+      id: org.id,
+      title: org.title,
+      description: org.description
+    }
+  });
+
+  res.json({
+    organizations
+  });
+})
+
 app.get('/boards', authMiddelware, (req, res) => {
   const userId = req.userId;
   const organizationId = parseInt(req.query.organizationId);
@@ -269,7 +288,9 @@ app.get('/boards', authMiddelware, (req, res) => {
   }
 
   const boards = BOARDS.filter(b => b.organizationId === organizationId);
-  res.json(boards);
+  res.json({
+    boards
+  });
 });
 
 app.get('/issues', authMiddelware, (req, res) => {

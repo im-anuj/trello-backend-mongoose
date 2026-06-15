@@ -327,7 +327,31 @@ app.get('/issues', authMiddelware, (req, res) => {
 });
 
 app.get('/members', authMiddelware, (req, res) => {
+  const userId = req.userId;
+  const organizationId = parseInt(req.query.organizationId);
 
+  const organization = ORGANIZATIONS.find(org => org.id === organizationId);
+  if(!organization){
+    return res.status(404).json({
+      message: "org doesnt exists"
+    });
+  }
+
+  if(organization.admin !== userId){
+    return res.status(403).json({
+      message: "you are not the admin of this org"
+    });
+  }
+
+  res.json({
+    members: organization.members.map(memberId => {
+      const user = USERS.find(u => u.id === memberId);
+      return{
+        userId: user.id,
+        username: user.username
+      }
+    })
+  });
 });
 
 //UPDATE

@@ -1,53 +1,54 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const authMiddelware = require('./middleware');
+const {userModel, organizationModel, boardModel, issueModel} = require('./models');
 
-let USERS_ID = 10;
-let ORGANIZATION_ID = 10;
-let BOARDS_ID = 10;
-let ISSUES_ID = 10;
+// let USERS_ID = 10;
+// let ORGANIZATION_ID = 10;
+// let BOARDS_ID = 10;
+// let ISSUES_ID = 10;
 
-const USERS = [{
-  id: 1,
-  username: "anuj123",
-  password: "123123"
-}, {
-  id: 2,
-  username: "rahul",
-  password: "1231234"
-}];
+// const USERS = [{
+//   id: 1,
+//   username: "anuj123",
+//   password: "123123"
+// }, {
+//   id: 2,
+//   username: "rahul",
+//   password: "1231234"
+// }];
 
-const ORGANIZATIONS = [{
-  id: 1,
-  title: "zomato",
-  description: "order food",
-  admin: 1,
-  members: [2]
-}, {
-  id: 2,
-  title: "org 2",
-  description: "org 2 description",
-  admin: 2,
-  members: []
-}];
+// const ORGANIZATIONS = [{
+//   id: 1,
+//   title: "zomato",
+//   description: "order food",
+//   admin: 1,
+//   members: [2]
+// }, {
+//   id: 2,
+//   title: "org 2",
+//   description: "org 2 description",
+//   admin: 2,
+//   members: []
+// }];
 
-const BOARDS = [{
-  id: 1,
-  title: "zomato website frontend",
-  organizationId: 1
-}];
+// const BOARDS = [{
+//   id: 1,
+//   title: "zomato website frontend",
+//   organizationId: 1
+// }];
 
-const ISSUES = [{
-  id: 1,
-  title: "add dark mode",
-  boardId: 1,
-  state: "IN_PROGRESS" // "UP_NEXT" | "IN_PROGRESS" | "DONE" | "ARCHIVED"
-}, {
-  id: 2,
-  title: "add new feat",
-  boardId: 1,
-  state: "DONE"
-}];
+// const ISSUES = [{
+//   id: 1,
+//   title: "add dark mode",
+//   boardId: 1,
+//   state: "IN_PROGRESS" // "UP_NEXT" | "IN_PROGRESS" | "DONE" | "ARCHIVED"
+// }, {
+//   id: 2,
+//   title: "add new feat",
+//   boardId: 1,
+//   state: "DONE"
+// }];
 
 const app = express();
 const PORT = 3000;
@@ -55,12 +56,12 @@ app.use(express.json());
 
 //CREATE
 
-app.post('/signup', (req, res) => {
+app.post('/signup', async(req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  const userExists = USERS.find((user) => {
-    return user.username === username;
+  const userExists = await userModel.findOne({
+    username: username
   });
 
   if(userExists){
@@ -70,24 +71,24 @@ app.post('/signup', (req, res) => {
     return;
   }
 
-  USERS.push({
-    id: USERS_ID++,
-    username: username,
-    password: password
+  const newUser = await userModel.create({
+    username,
+    password
   });
   res.json({
-    message: "Signup successful"
+    message: "Signup successful",
+    id: newUser._id
   });
 });
 
-app.post('/signin', (req, res) => {
+app.post('/signin', async(req, res) => {
   const username = req.body.username;
   const password = req.body.password;
 
-  const newUser = USERS.find((user) => {
-    return (user.username === username &&
-            user.password === password);
-  });
+  const newUser = await userModel.findOne({
+    username: username,
+    password: password
+  })
 
   if(!newUser){
     res.status(401).json({

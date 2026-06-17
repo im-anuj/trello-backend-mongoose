@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb url here');
+mongoose.connect('');
 
 const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
@@ -28,10 +28,10 @@ const IssueSchema = new Schema({
   state: String
 });
 
-const userModel = mongoose.model("USERS", UserSchema);
-const organizationModel = mongoose.model("ORGANIZATION", OrganizationSchema);
-const boardModel = mongoose.model("BOARDS", BoardSchema);
-const issueModel = mongoose.model('ISSUES', IssueSchema);
+const userModel = mongoose.model("users", UserSchema);
+const organizationModel = mongoose.model("organizations", OrganizationSchema);
+const boardModel = mongoose.model("boards", BoardSchema);
+const issueModel = mongoose.model('issues', IssueSchema);
 
 module.exports = {
   userModel,

@@ -103,10 +103,9 @@ app.post('/signin', async(req, res) => {
   res.json(token);
 });
 
-app.post('/organization', authMiddelware, (req, res) => {
+app.post('/organization', authMiddelware, async(req, res) => {
   const userId = req.userId;
-  ORGANIZATIONS.push({
-    id: ORGANIZATION_ID++,
+  const newOrg = await organizationModel.create({
     title: req.body.title,
     description: req.body.description,
     admin: userId,
@@ -114,25 +113,29 @@ app.post('/organization', authMiddelware, (req, res) => {
   });
   res.json({
     message: "org created",
-    organizationId: ORGANIZATION_ID - 1
+    organizationId: newOrg._id
   });
 });
 
-app.post('/add-member-to-organization', authMiddelware, (req, res) => {
+app.post('/add-member-to-organization', authMiddelware, async(req, res) => {
   const userId = req.userId;
   const organizationId = req.body.organizationId;
   const memberUsername = req.body.memberUsername;
 
-  const organization = ORGANIZATIONS.find(org => org.id === organizationId);
+  const organization = await organizationModel.findOne({
+    _id: organizationId
+  });
 
-  if( !organization || organization.admin !== userId){
+  if( !organization || organization.admin.toString() !== userId){
     res.status(411).json({
       message: "either this org doesnt exists or you are not an admin of this org"
     });
     return;
   }
 
-  const member = USERS.find(u => u.username === memberUsername);
+  const member = await userModel.findOne({
+    username: memberUsername
+  });
 
   if(!member){
     res.status(411).json({
@@ -141,69 +144,87 @@ app.post('/add-member-to-organization', authMiddelware, (req, res) => {
     return;
   }
 
-  organization.members.push(member.id);
+  await organizationModel.updateOne({
+    _id: organizationId
+  }, {
+    $addToSet: { //used $addToSet insted of $push to avoid duplication
+      members: member._id
+    }
+  });
+  //another way
+  // organization.members.push(member._id);
+  // await organization.save();
+
   res.json({
     message: "new member added"
   });
 });
 
-app.post('/board', authMiddelware, (req, res)=> {
+app.post('/board', authMiddelware, async(req, res)=> {
   const userId = req.userId;
   const organizationId = req.body.organizationId;
 
-  const organization = ORGANIZATIONS.find(org => org.id === organizationId);
+  const organization = await organizationModel.findOne({
+    _id: organizationId
+  })
 
   if(!organization){
     return res.status(404).json({
       message: "this org doesnt exists"
     });
   }
-  if(organization.admin !== userId){
+  if(organization.admin.toString() !== userId){
     return res.status(403).json({
       message: "only admin can create boards"
     });
   }
 
-  BOARDS.push({
-    id: BOARDS_ID++,
+  const newBoard = await boardModel.create({
     title: req.body.title,
     organizationId: organizationId
-  });
+  })
   res.json({
     message: "board created",
-    boardId: BOARDS_ID - 1
+    boardId: newBoard._id
   });
 });
 
-app.post('/issue', authMiddelware, (req, res) => {
+app.post('/issue', authMiddelware, async(req, res) => {
   const userId = req.userId;
   const boardId = req.body.boardId;
 
-  const board = BOARDS.find(board => board.id === boardId);
+  const board = await boardModel.findOne({
+    _id: boardId
+  });
+  
   if(!board){
     return res.status(404).json({
       message: "board not found"
     });
   }
 
-  const organization = ORGANIZATIONS.find(org => org.id === board.organizationId);
+  const organization = await organizationModel.findOne({
+    _id: board.organizationId
+  });
+
   if(!organization){
     return res.status(404).json({
       message: "this org doesnt exists"
     });
   }
 
-  const isMember = organization.admin === userId || 
-                    organization.members.includes(userId);
-
+  const isMember = organization.admin.toString() === userId || 
+                    organization.members.some(memberId => memberId.toString() === userId);
+                    //.some() is a JavaScript array method that checks whether at least one 
+                    // element in the array satisfies a condition.
+                    
   if(!isMember){
     return res.status(403).json({
       message: "you are not a member of this org"
     });
   }
 
-  ISSUES.push({
-    id: ISSUES_ID++,
+  const newIssue = await issueModel.create({
     title: req.body.title,
     boardId: boardId,
     state: "UP_NEXT"
@@ -211,7 +232,7 @@ app.post('/issue', authMiddelware, (req, res) => {
 
   res.json({
     message: "issue created",
-    issueId: ISSUES_ID - 1
+    issueId: newIssue._id
   });
 });
 
